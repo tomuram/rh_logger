@@ -3,7 +3,8 @@
 
 How to use:
 
-* `rh_logger.start_process(args, msg)`: log the start of a process (args gives enough context to figure out the data inputs and outputs)
-* `rh_logger.end_process(msg)`: log the end of a process
-* `rh_logger.report_metric(name, metric, context=None)`: Report a metric such as accuracy or execution time. Context gives enough information to narrow the metric to an instance of the named step.
-* `rh_logger.report_event(name, event, context=None)`: Report an event.  Context gives enough information to narrow the metric to an instance of the named step.
+* `logger = rh_logger.get_logger(name, args)`: get a logger with the process's name and enough context in `args` to figure out the data inputs and outputs used to run it. 
+* `logger.start_process(msg)`: log the start of a process
+* `logger.end_process(msg)`: log the end of a process
+* `logger.report_metric(name, metric, subcontext=None)`: Report a metric such as accuracy or execution time. Subcontext gives enough information to narrow the metric to an instance of the named step.
+* `logger.report_event(name, event, context=None)`: Report an event.  Context gives enough information to narrow the metric to an instance of the named step.
