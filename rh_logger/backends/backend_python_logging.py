@@ -7,6 +7,7 @@ import logging
 import rh_logger.api
 import sys
 
+
 class BLPLogger(rh_logger.api.Logger):
     def __init__(self, name, args):
         self.logger = logging.getLogger(name)
@@ -14,24 +15,24 @@ class BLPLogger(rh_logger.api.Logger):
 
     def start_process(self, msg):
         '''Report the start of a process
-        
+
         :param msg: an introductory message for the process
         '''
         self.logger.info("Starting process: %s (%s)" %
                          (msg, repr(self.args)))
-    
+
     def end_process(self, msg, exit_code):
         '''Report the end of a process
-        
+
         :param msg: an informative message about why the process ended
         :param exit_code: one of the :py:class: `ExitCode` enumerations
         '''
         self.logger.info("Ending process: %s, exit code = %s" %
                          (msg, exit_code.name))
-    
+
     def report_metric(self, name, metric, subcontext=None):
         '''Report a metric such as accuracy or execution time
-        
+
         :param name: name of the metric, e.g. "Rand score"
         :param metric: the value
         :param subcontext: an optional sequence of objects identifying a
@@ -43,7 +44,7 @@ class BLPLogger(rh_logger.api.Logger):
         else:
             self.logger.info("Metric %s=%s (%s)" %
                              (name, str(metric), subcontext))
-    
+
     def report_event(self, event, context=None):
         '''Report an event
 
@@ -54,10 +55,10 @@ class BLPLogger(rh_logger.api.Logger):
             self.logger.info(event)
         else:
             self.logger.info("%s (%s)" % (event, repr(context)))
-    
+
     def report_exception(self, exception=None, msg=None):
         '''Report an exception
-        
+
         :param exception: the :py:class: `Exception` that was thrown. Default
         is the one reported by sys.exc_info()
         :param msg: an informative message
@@ -70,6 +71,7 @@ class BLPLogger(rh_logger.api.Logger):
             if msg is None:
                 msg = str(exception)
             self.logger.error(msg)
+
 
 def get_logger(name, args):
     '''Get the default rh_logging logger'''

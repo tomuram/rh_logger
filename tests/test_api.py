@@ -3,7 +3,9 @@
 import rh_logger
 import unittest
 
+
 class TestLogging(unittest.TestCase):
+
     def test_backend(self):
         #
         # Try all of the logging functions to get enough coverage to
@@ -18,7 +20,7 @@ class TestLogging(unittest.TestCase):
         except:
             logger.report_exception()
         logger.end_process("bye for now", rh_logger.ExitCode.success)
-    
+
     def test_get_set_logger_backend(self):
         old_backend = rh_logger.get_logging_backend()
         try:
