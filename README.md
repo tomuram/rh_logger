@@ -18,3 +18,16 @@ via Python logging. You can either specify another logger's entry point name
 using the RH_LOGGING_BACKEND environment variable or call
 `rh_logger.set_logging_backend` to pick a backend before calling
 `rh_logger.get_logger`.
+
+## Datadog logger
+
+Datadog is a centralized console and API for monitoring a distributed
+application (https://app.datadoghq.com). You can use rh_logging with the
+datadog logger if you have a datadog account and have API and APP keys
+for your application.
+
+To configure:
+* Set the RH_LOGGING_BACKEND environment variable to "datadog"
+* Set the RH_DATADOG_API_KEY environment variable to your datadog API key
+* Set the RH_DATADOG_APP_KEY environment variable to your datadog app key
+* Use 'rh_logger.get_logger()' to get yourself a logger and log away.
