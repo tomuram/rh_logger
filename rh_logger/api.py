@@ -34,7 +34,7 @@ def get_logger(name, args):
     '''
     for entry_point in pkg_resources.WorkingSet().iter_entry_points(
             'rh_logger.backend', get_logging_backend()):
-        fn = entry_point.resolve()
+        fn = entry_point.load()
         result = fn(name, args)
         if result is not None:
             return result
