@@ -108,18 +108,18 @@ class DatadogLogger(rh_logger.api.Logger):
         :param msg: an informative message
         '''
         if exception is None:
-            exc_type, exception, traceback = sys.exc_info()
+            exc_type, exception, tb = sys.exc_info()
         else:
             exc_type = type(exception)
-            traceback = None
+            tb = None
         if msg is None:
             msg = str(exception)
         tags = [self.name, "exception", exc_type.__name__]
-        if traceback is not None:
+        if tb is not None:
             # TODO: add stack breadcrumbs to the tags
             #       Consider using Sentry for logging exceptions
-            msg += "\n" + traceback.format_exception(
-                exc_type, exception, traceback)
+            msg += "\n" + "".join(traceback.format_exception(
+                exc_type, exception, tb))
         datadog.api.Event.create(title="Exception report",
                                  text=msg,
                                  alert_type="error",
