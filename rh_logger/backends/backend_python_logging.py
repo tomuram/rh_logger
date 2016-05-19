@@ -47,6 +47,19 @@ class BLPLogger(rh_logger.api.Logger):
         else:
             self.logger.info("Metric %s=%s (%s)" %
                              (name, str(metric), subcontext))
+    
+    def report_metrics(self, name, time_series, context=None):
+        times = [_[0] for _ in time_series.timestamps_and_metrics]
+        metrics = [_[1] for _ in time_series.timestamps_and_metrics]
+        delta = times[-1] - times[0]
+        total = sum(metrics)
+        avg = float(total) / len(metrics)
+        msg = "Metric %s: Running time = %0.4f, avg = %f, total = %f" % (
+            name, delta, avg, total)
+        if context is None:
+            self.logger.info(msg)
+        else:
+            self.logger.info(msg + " (%s)" % str(context))
 
     def report_event(self, event, context=None):
         '''Report an event

@@ -4,6 +4,7 @@ import enum
 import os
 import pkg_resources
 import rh_config
+import time
 
 logging_config_root = rh_config.config.get(
     "rh-logger", 
@@ -69,6 +70,17 @@ class ExitCode(enum.Enum):
     '''Process exiting because of internal error'''
     internal_error = 3
 
+class TimeSeries(object):
+    '''A time series is a set of metrics generated over time
+    
+    The use case is a rapid process which is being done repeatedly - this
+    aggregates the metrics on that process into one API round-trip.
+    '''
+    def __init__(self):
+        self.timestamps_and_metrics = []
+    
+    def report_metric(self, metric):
+        self.timestamps_and_metrics.append((time.time(), metric))
 
 class Logger(object):
     '''Interface for all loggers'''
@@ -96,6 +108,10 @@ class Logger(object):
         :param subcontext: an optional sequence of objects identifying a
         subcontext for the metric such as a tile of the MFOV being processed.
         '''
+        raise NotImplementedError()
+    
+    def report_metrics(self, name, time_series, context=None):
+        '''Report a number of metrics simultaneously'''
         raise NotImplementedError()
 
     def report_event(self, event, context=None):

@@ -84,6 +84,18 @@ class DatadogLogger(rh_logger.api.Logger):
                                 points=[metric],
                                 host=self.name,
                                 tags=tags)
+        
+    def report_metrics(self, name, time_series, context=None):
+        if isinstance(context, collections.Sequence):
+            tags = [self.name] + context
+        elif context is not None:
+            tags = [self.name, context]
+        else:
+            tags = [self.name]
+        datadog.api.Metric.send(metric=name,
+                                points=time_series.timestamps_and_metrics,
+                                host=self.name,
+                                tags=tags)
 
     def report_event(self, event, context=None):
         '''Report an event
