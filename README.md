@@ -9,15 +9,49 @@ How to use:
 * `logger.report_metric(name, metric, subcontext=None)`: Report a metric such as accuracy or execution time. Subcontext gives enough information to narrow the metric to an instance of the named step.
 * `logger.report_event(event, context=None)`: Report an event.  Context gives enough information to narrow the metric to an instance of the named step.
 * `logger.report_exception(exception=None, msg=None)`: Report an exception. Exception is last exception thrown by default. Message is `str(exception)` by default.
+* After calling `get_logger`, you can reference the logger globally as
+rh_logger.logger
+* If you write a logging backend, the configuration for it is stored in
+`rh_logger.logging_config`
 
-Configuring:
+## Configuring:
 
 rh_logger uses entry points to register and find its backend. The entry point
 group is "rh_logger.backend". rh_logger comes with a default logger that logs
-via Python logging. You can either specify another logger's entry point name
-using the RH_LOGGING_BACKEND environment variable or call
-`rh_logger.set_logging_backend` to pick a backend before calling
-`rh_logger.get_logger`.
+via Python logging and the datadog logger. You choose the logger either
+programatically, specifying the entry point name in a call to
+`rh_logger.set_logging_backend` or specify the name in your .rh-config.yaml
+file:
+
+### rh_config entries
+
+    rh-logger:
+        logging-backend: default or datadog (or your own)
+        default:
+            # values here are passed into logging.config.dictConfig
+            # for example
+            version: 1
+            handlers:
+              console:
+                class : logging.StreamHandler
+                formatter: default
+                level: INFO
+            formatters:
+              brief:
+                format: '%(message)s'
+              default:
+                format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+                datefmt: '%Y-%m-%d %H:%M:%S'
+            root:
+              handlers: [console]
+              level: INFO
+        datadog:
+            api-key: 0000000000000000000
+            my-first-application:
+                app-key: 000000000000000000000
+            my-second-application:
+                app-key: 000000000000000000000
+
 
 ## Datadog logger
 
@@ -27,7 +61,8 @@ datadog logger if you have a datadog account and have API and APP keys
 for your application.
 
 To configure:
-* Set the RH_LOGGING_BACKEND environment variable to "datadog"
-* Set the RH_DATADOG_API_KEY environment variable to your datadog API key
-* Set the RH_DATADOG_APP_KEY environment variable to your datadog app key
-* Use 'rh_logger.get_logger()' to get yourself a logger and log away.
+* Set the logging-backend rh_config entry to `datadog`
+* Set the api-key config entry to your datadog API key
+* Create an entry under `datadog` for your app, using the name that you
+will use in the call to `get_logger`. Specify the app-key as sub-entry
+* Use `rh_logger.get_logger()` to get yourself a logger

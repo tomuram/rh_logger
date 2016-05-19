@@ -4,26 +4,40 @@ import collections
 import datadog
 import datetime
 import os
+import rh_logger
 import rh_logger.api
 import sys
 import traceback
-
-DATADOG_APP_KEY = os.environ.get(
-    "DATADOG_APP_KEY",
-    "6e43ea6fc7bbfb27f6a693e5364e19f640c85bff")
-
 
 class DatadogLogger(rh_logger.api.Logger):
     '''Logger for datadog'''
 
     def __init__(self, name, context):
         self.name = name
+        config = rh_logger.get_logging_config()
         if isinstance(context, collections.Sequence):
             self.context = context
         else:
             self.context = [context]
-        datadog.initialize(api_key=os.environ["RH_DATADOG_API_KEY"],
-                           app_key=DATADOG_APP_KEY)
+        if "api-key" not in config:
+            raise IndexError(
+                "The api-key is missing from the datadog configuration "
+                "subsection in the rh-logger section. See README.md for "
+                "a configuration example."
+            )
+        api_key = config["api-key"]
+        if name not in config:
+            raise IndexError(
+                ("The %s section is missing from the datadog configuration "
+                 "subsection of the rh-logger section. See README.md for "
+                 "a configuration example.") % name)
+        if "app-key" not in config[name]:
+            raise IndexError(
+                 "There is no app-key in your application's logger "
+                 "configuration section. See README.md for a configuration "
+                 "example.")
+        app_key = config[name]['app-key']
+        datadog.initialize(api_key=api_key, app_key=app_key)
 
     def start_process(self, msg):
         '''Report the start of a process

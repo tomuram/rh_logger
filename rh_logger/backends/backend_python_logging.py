@@ -4,12 +4,15 @@ Note: this is intended only for informal debugging.
 '''
 
 import logging
+import logging.config
+import rh_logger
 import rh_logger.api
 import sys
 
 
 class BLPLogger(rh_logger.api.Logger):
     def __init__(self, name, args):
+        logging.config.dictConfig(rh_logger.get_logging_config())
         self.logger = logging.getLogger(name)
         self.args = args
 

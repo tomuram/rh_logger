@@ -3,9 +3,18 @@
 import enum
 import os
 import pkg_resources
+import rh_config
 
-__logging_backend = os.environ.get("RH_LOGGING_BACKEND", "default")
+logging_config_root = rh_config.config.get(
+    "rh-logger", 
+    { "logging-backend": "default" })
 
+__logging_backend = logging_config_root.get(
+        "logging-backend", "default"
+    )
+
+logging_config = None
+logger = None
 
 def set_logging_backend(name):
     '''Set the name of the logging backend
@@ -32,12 +41,22 @@ def get_logger(name, args):
          of the process, for instance the input arguments
     :returns: a Logger instance
     '''
+    global logger, logging_config
+    if logger is not None:
+        return logger
+    
+    backend = get_logging_backend()
     for entry_point in pkg_resources.WorkingSet().iter_entry_points(
-            'rh_logger.backend', get_logging_backend()):
+            'rh_logger.backend', backend):
         fn = entry_point.load()
-        result = fn(name, args)
-        if result is not None:
-            return result
+        logging_config = logging_config_root.get(backend, {})
+        logger = fn(name, args)
+        if logger is not None:
+            return logger
+        
+def get_logging_config():
+    '''Get the section of the rh_config for the loaded logger'''
+    return logging_config
 
 
 class ExitCode(enum.Enum):
