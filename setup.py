@@ -5,7 +5,8 @@ setuptools.setup(
     entry_points={
         "rh_logger.backend": [
             "default = rh_logger.backends.backend_python_logging:get_logger",
-            "datadog = rh_logger.backends.backend_datadog_logging:get_logger"
+            "datadog = rh_logger.backends.backend_datadog_logging:get_logger",
+            "carbon = rh_logger.backends.backend_carbon_logging:get_logger"
         ]
     },
     install_requires=["enum34>=1.0.4",

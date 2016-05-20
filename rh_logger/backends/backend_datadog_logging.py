@@ -74,7 +74,8 @@ class DatadogLogger(rh_logger.api.Logger):
         :param subcontext: an optional sequence of objects identifying a
         subcontext for the metric such as a tile of the MFOV being processed.
         '''
-        if isinstance(subcontext, collections.Sequence):
+        if isinstance(subcontext, collections.Sequence)\
+           and not isinstance(subcontext, basestring):
             tags = [self.name] + subcontext
         elif subcontext is not None:
             tags = [self.name, subcontext]
@@ -86,7 +87,8 @@ class DatadogLogger(rh_logger.api.Logger):
                                 tags=tags)
         
     def report_metrics(self, name, time_series, context=None):
-        if isinstance(context, collections.Sequence):
+        if isinstance(context, collections.Sequence)\
+           and not isinstance(context, basestring):
             tags = [self.name] + context
         elif context is not None:
             tags = [self.name, context]
@@ -103,7 +105,8 @@ class DatadogLogger(rh_logger.api.Logger):
         :param event: the name of the event, for instance, "Frobbing complete"
         :param context: a subcontext such as "MFOV: 5, Tile: 3"
         '''
-        if isinstance(context, collections.Sequence):
+        if isinstance(context, collections.Sequence)\
+           and not isinstance(context, basestring):
             tags = [self.name] + context
         else:
             tags = [self.name, context]
@@ -136,10 +139,11 @@ class DatadogLogger(rh_logger.api.Logger):
                                  text=msg,
                                  alert_type="error",
                                  tags=tags)
-        datadog.api.Metric.send(metrics="exception",
+        datadog.api.Metric.send(metric="exception",
                                 points=[(datetime.datetime.now(),
                                          1)],
                                 type="counter",
+                                host=self.name,
                                 tags=tags)
 
 

@@ -7,15 +7,16 @@ import rh_config
 import time
 
 logging_config_root = rh_config.config.get(
-    "rh-logger", 
-    { "logging-backend": "default" })
+    "rh-logger",
+    {"logging-backend": "default"})
 
 __logging_backend = logging_config_root.get(
-        "logging-backend", "default"
-    )
+    "logging-backend", "default"
+)
 
 logging_config = None
 logger = None
+
 
 def set_logging_backend(name):
     '''Set the name of the logging backend
@@ -45,7 +46,7 @@ def get_logger(name, args):
     global logger, logging_config
     if logger is not None:
         return logger
-    
+
     backend = get_logging_backend()
     for entry_point in pkg_resources.WorkingSet().iter_entry_points(
             'rh_logger.backend', backend):
@@ -54,7 +55,8 @@ def get_logger(name, args):
         logger = fn(name, args)
         if logger is not None:
             return logger
-        
+
+
 def get_logging_config():
     '''Get the section of the rh_config for the loaded logger'''
     return logging_config
@@ -70,17 +72,20 @@ class ExitCode(enum.Enum):
     '''Process exiting because of internal error'''
     internal_error = 3
 
+
 class TimeSeries(object):
     '''A time series is a set of metrics generated over time
-    
+
     The use case is a rapid process which is being done repeatedly - this
     aggregates the metrics on that process into one API round-trip.
     '''
+
     def __init__(self):
         self.timestamps_and_metrics = []
-    
+
     def report_metric(self, metric):
         self.timestamps_and_metrics.append((time.time(), metric))
+
 
 class Logger(object):
     '''Interface for all loggers'''
@@ -109,7 +114,7 @@ class Logger(object):
         subcontext for the metric such as a tile of the MFOV being processed.
         '''
         raise NotImplementedError()
-    
+
     def report_metrics(self, name, time_series, context=None):
         '''Report a number of metrics simultaneously'''
         raise NotImplementedError()

@@ -51,6 +51,24 @@ file:
                 app-key: 000000000000000000000
             my-second-application:
                 app-key: 000000000000000000000
+        carbon:
+            host: 127.0.0.1
+            port: 2003
+            version: 1
+            handlers:
+                console:
+                    class : logging.StreamHandler
+                    formatter: default
+                    level: INFO
+            formatters:
+                brief:
+                    format: '%(message)s'
+                default:
+                    format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+                    datefmt: '%Y-%m-%d %H:%M:%S'
+            root:
+                handlers: [console]
+                level: INFO
 
 
 ## Datadog logger
@@ -66,3 +84,11 @@ To configure:
 * Create an entry under `datadog` for your app, using the name that you
 will use in the call to `get_logger`. Specify the app-key as sub-entry
 * Use `rh_logger.get_logger()` to get yourself a logger
+
+## Carbon logger
+
+Carbon and Graphite (and grafana) are open source applications for logging
+metrics data. The Carbon logger logs metrics to Carbon, but uses the Python
+logger for events and similar. This means that the config for the Carbon
+logger includes both the host and port # for the Carbon server and the
+config parameters for the Python logger.
