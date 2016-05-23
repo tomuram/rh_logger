@@ -11,8 +11,15 @@ import sys
 
 
 class BLPLogger(rh_logger.api.Logger):
+
     def __init__(self, name, args):
-        logging.config.dictConfig(rh_logger.get_logging_config())
+        config = rh_logger.get_logging_config()
+        if "version" != config or config["version"] != 1:
+            # If no config supplied, use basic config
+            logging.basicConfig()
+            logging.root.setLevel(logging.INFO)
+        else:
+            logging.config.dictConfig(config)
         self.logger = logging.getLogger(name)
         self.args = args
 
@@ -47,7 +54,7 @@ class BLPLogger(rh_logger.api.Logger):
         else:
             self.logger.info("Metric %s=%s (%s)" %
                              (name, str(metric), subcontext))
-    
+
     def report_metrics(self, name, time_series, context=None):
         times = [_[0] for _ in time_series.timestamps_and_metrics]
         metrics = [_[1] for _ in time_series.timestamps_and_metrics]
