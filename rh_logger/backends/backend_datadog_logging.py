@@ -4,6 +4,7 @@ import collections
 import datadog
 import datetime
 import os
+import logging
 import rh_logger
 import rh_logger.api
 import sys
@@ -99,7 +100,7 @@ class DatadogLogger(rh_logger.api.Logger):
                                 host=self.name,
                                 tags=tags)
 
-    def report_event(self, event, context=None):
+    def report_event(self, event, context=None, log_level=None):
         '''Report an event
 
         :param event: the name of the event, for instance, "Frobbing complete"
@@ -110,9 +111,18 @@ class DatadogLogger(rh_logger.api.Logger):
             tags = [self.name] + context
         else:
             tags = [self.name, context]
+        if log_level is None or log_level in (logging.DEBUG, logging.INFO):
+            alert_type="info"
+        elif log_level == logging.WARNING:
+            alert_type="warning"
+        elif log_level in (logging.ERROR, logging.CRITICAL):
+            alert_type="error"
+        else:
+            alert_type="info"
+            
         datadog.api.Event.create(title=event,
                                  text=event,
-                                 alert_type="info",
+                                 alert_type=alert_type,
                                  tags=tags)
 
     def report_exception(self, exception=None, msg=None):

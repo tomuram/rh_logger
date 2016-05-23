@@ -6,17 +6,6 @@ import pkg_resources
 import rh_config
 import time
 
-logging_config_root = rh_config.config.get(
-    "rh-logger",
-    {"logging-backend": "default"})
-
-__logging_backend = logging_config_root.get(
-    "logging-backend", "default"
-)
-
-logging_config = None
-logger = None
-
 
 def set_logging_backend(name):
     '''Set the name of the logging backend
@@ -44,7 +33,7 @@ def get_logger(name, args):
     :returns: a Logger instance
     '''
     global logger, logging_config
-    if logger is not None:
+    if logger.has_logger():
         return logger
 
     backend = get_logging_backend()
@@ -52,8 +41,9 @@ def get_logger(name, args):
             'rh_logger.backend', backend):
         fn = entry_point.load()
         logging_config = logging_config_root.get(backend, {})
-        logger = fn(name, args)
-        if logger is not None:
+        logger_ = fn(name, args)
+        if logger_ is not None:
+            logger.set_logger(logger_)
             return logger
 
 
@@ -119,11 +109,13 @@ class Logger(object):
         '''Report a number of metrics simultaneously'''
         raise NotImplementedError()
 
-    def report_event(self, event, context=None):
+    def report_event(self, event, context=None, log_level=None):
         '''Report an event
 
         :param event: the name of the event, for instance, "Frobbing complete"
         :param context: a subcontext such as "MFOV: 5, Tile: 3"
+        :param log_level: an optional log level. One of logging.DEBUG,
+        logging.INFO, logging.WARNING, logging.ERROR or logging.CRITICAL
         '''
         raise NotImplementedError()
 
@@ -135,3 +127,81 @@ class Logger(object):
         :param msg: an informative message
         '''
         raise NotImplementedError()
+
+
+class LoggerProxy(Logger):
+    '''This is a proxy for whatever logger is chosen
+
+    The sole purpose of this logger is to let you do things like
+
+    from rh_logger import logger
+
+    because what you will get is the logger proxy.
+    '''
+
+    def has_logger(self):
+        return hasattr(self, "logger")
+
+    def set_logger(self, logger):
+        '''Point at the real logger'''
+        assert isinstance(logger, Logger)
+        self.logger = logger
+
+    def start_process(self, msg):
+        '''Report the start of a process
+
+        :param msg: an introductory message for the process
+        '''
+        self.logger.start_process(msg)
+
+    def end_process(self, msg, exit_code):
+        '''Report the end of a process
+
+        :param msg: an informative message about why the process ended
+        :param exit_code: one of the :py:class: `ExitCode` enumerations
+        '''
+        self.logger.end_process(msg, exit_code)
+
+    def report_metric(self, name, metric, subcontext=None):
+        '''Report a metric such as accuracy or execution time
+
+        :param name: name of the metric, e.g. "Rand score"
+        :param metric: the value
+        :param subcontext: an optional sequence of objects identifying a
+        subcontext for the metric such as a tile of the MFOV being processed.
+        '''
+        self.logger.report_metric(name, metric, subcontext)
+
+    def report_metrics(self, name, time_series, context=None):
+        '''Report a number of metrics simultaneously'''
+        self.logger.report_metrics(name, time_series, context)
+
+    def report_event(self, event, context=None, log_level=None):
+        '''Report an event
+
+        :param event: the name of the event, for instance, "Frobbing complete"
+        :param context: a subcontext such as "MFOV: 5, Tile: 3"
+        :param log_level: an optional log level. One of logging.DEBUG,
+        logging.INFO, logging.WARNING, logging.ERROR or logging.CRITICAL
+        '''
+        self.logger.report_event(event, context, log_level)
+
+    def report_exception(self, exception=None, msg=None):
+        '''Report an exception
+
+        :param exception: the :py:class: `Exception` that was thrown. Default
+        is the one reported by sys.exc_info()
+        :param msg: an informative message
+        '''
+        self.logger.report_exception(exception, msg)
+
+logging_config_root = rh_config.config.get(
+    "rh-logger",
+    {"logging-backend": "default"})
+
+__logging_backend = logging_config_root.get(
+    "logging-backend", "default"
+)
+
+logging_config = None
+logger = LoggerProxy()

@@ -61,16 +61,30 @@ class BLPLogger(rh_logger.api.Logger):
         else:
             self.logger.info(msg + " (%s)" % str(context))
 
-    def report_event(self, event, context=None):
+    def report_event(self, event, context=None, log_level=None):
         '''Report an event
 
         :param event: the name of the event, for instance, "Frobbing complete"
         :param context: a subcontext such as "MFOV: 5, Tile: 3"
         '''
-        if context is None:
-            self.logger.info(event)
+        if log_level is None:
+            log_fn = self.logger.info
+        elif log_level <= logging.DEBUG:
+            log_fn = self.logger.debug
+        elif log_level <= logging.INFO:
+            log_fn = self.logger.info
+        elif log_level <= logging.WARNING:
+            log_fn = self.logger.warning
+        elif log_level <= logging.ERROR:
+            log_fn = self.logger.error
+        elif log_level <= logging.CRITICAL:
+            log_fn = self.logger.critical
         else:
-            self.logger.info("%s (%s)" % (event, repr(context)))
+            log_fn = self.logger.critical
+        if context is None:
+            log_fn(event)
+        else:
+            log_fn("%s (%s)" % (event, repr(context)))
 
     def report_exception(self, exception=None, msg=None):
         '''Report an exception
