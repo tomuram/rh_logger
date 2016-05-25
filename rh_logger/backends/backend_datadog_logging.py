@@ -13,13 +13,9 @@ import traceback
 class DatadogLogger(rh_logger.api.Logger):
     '''Logger for datadog'''
 
-    def __init__(self, name, context):
+    def __init__(self, name):
         self.name = name
         config = rh_logger.get_logging_config()
-        if isinstance(context, collections.Sequence):
-            self.context = context
-        else:
-            self.context = [context]
         if "api-key" not in config:
             raise IndexError(
                 "The api-key is missing from the datadog configuration "
@@ -40,15 +36,23 @@ class DatadogLogger(rh_logger.api.Logger):
         app_key = config[name]['app-key']
         datadog.initialize(api_key=api_key, app_key=app_key)
 
-    def start_process(self, msg):
+    def start_process(self, name, msg, args=None):
         '''Report the start of a process
 
         :param msg: an introductory message for the process
         '''
+        if args is None:
+            context = []
+        elif isinstance(args, basestring):
+            context = [ args ]
+        elif isinstance(args, collections.Sequence):
+            context = args
+        else:
+            context = [ str(args) ]
         datadog.api.Event.create(title="%s starting" % self.name,
                                  text=msg,
                                  alert_type="info",
-                                 tags=[self.name, "startup"] + self.context)
+                                 tags=[self.name, "startup"] + context)
 
     def end_process(self, msg, exit_code):
         '''Report the end of a process

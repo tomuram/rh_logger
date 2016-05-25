@@ -24,29 +24,6 @@ def get_logging_backend():
     return __logging_backend
 
 
-def get_logger(name, args):
-    '''Get a logger
-
-    :param name: the name to use for reporting
-    :param args: a list of string arguments giving the parameterization
-         of the process, for instance the input arguments
-    :returns: a Logger instance
-    '''
-    global logger, logging_config
-    if logger.has_logger():
-        return logger
-
-    backend = get_logging_backend()
-    for entry_point in pkg_resources.WorkingSet().iter_entry_points(
-            'rh_logger.backend', backend):
-        fn = entry_point.load()
-        logging_config = logging_config_root.get(backend, {})
-        logger_ = fn(name, args)
-        if logger_ is not None:
-            logger.set_logger(logger_)
-            return logger
-
-
 def get_logging_config():
     '''Get the section of the rh_config for the loaded logger'''
     return logging_config
@@ -80,10 +57,13 @@ class TimeSeries(object):
 class Logger(object):
     '''Interface for all loggers'''
 
-    def start_process(self, msg):
+    def start_process(self, name, msg, args=None):
         '''Report the start of a process
 
+        :param name: the name of the process
         :param msg: an introductory message for the process
+        :param args: the arguments to the process (the things that
+        differentiate this instantiation of the process from others)
         '''
         raise NotImplementedError()
 
@@ -95,7 +75,7 @@ class Logger(object):
         '''
         raise NotImplementedError()
 
-    def report_metric(self, name, metric, subcontext=None):
+    def report_metric(self, name, metric, context=None):
         '''Report a metric such as accuracy or execution time
 
         :param name: name of the metric, e.g. "Rand score"
@@ -139,20 +119,30 @@ class LoggerProxy(Logger):
     because what you will get is the logger proxy.
     '''
 
-    def has_logger(self):
-        return hasattr(self, "logger")
+    def __initialize(self, name):
+        '''Pick the actual logger to be served to everyone.
 
-    def set_logger(self, logger):
-        '''Point at the real logger'''
-        assert isinstance(logger, Logger)
-        self.logger = logger
+        :param name: the name to use for reporting
+        '''
+        assert not hasattr(self, "logger"), "Can't call start_process twice"
+        backend = get_logging_backend()
+        for entry_point in pkg_resources.WorkingSet().iter_entry_points(
+                'rh_logger.backend', backend):
+            fn = entry_point.load()
+            logging_config = logging_config_root.get(backend, {})
+            self.logger = fn(name)
+            if self.logger is not None:
+                return
+        raise ValueError("Unable to find an appropriate logging backend. "
+                         "Check your .rh_config.yaml file.")
 
-    def start_process(self, msg):
+    def start_process(self, name, msg, args=None):
         '''Report the start of a process
 
         :param msg: an introductory message for the process
         '''
-        self.logger.start_process(msg)
+        self.__initialize(name)
+        self.logger.start_process(name, msg, args)
 
     def end_process(self, msg, exit_code):
         '''Report the end of a process
@@ -162,7 +152,7 @@ class LoggerProxy(Logger):
         '''
         self.logger.end_process(msg, exit_code)
 
-    def report_metric(self, name, metric, subcontext=None):
+    def report_metric(self, name, metric, context=None):
         '''Report a metric such as accuracy or execution time
 
         :param name: name of the metric, e.g. "Rand score"
@@ -170,7 +160,7 @@ class LoggerProxy(Logger):
         :param subcontext: an optional sequence of objects identifying a
         subcontext for the metric such as a tile of the MFOV being processed.
         '''
-        self.logger.report_metric(name, metric, subcontext)
+        self.logger.report_metric(name, metric, context)
 
     def report_metrics(self, name, time_series, context=None):
         '''Report a number of metrics simultaneously'''

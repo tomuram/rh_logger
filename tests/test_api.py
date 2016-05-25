@@ -1,5 +1,6 @@
 '''Test the logging API'''
 
+from rh_logger import logger
 import rh_logger
 import unittest
 
@@ -11,8 +12,7 @@ class TestLogging(unittest.TestCase):
         # Try all of the logging functions to get enough coverage to
         # run through the code
         #
-        logger = rh_logger.get_logger("foo", ["bar", "baz"])
-        logger.start_process("Hello, world")
+        logger.start_process("foo", "Hello, world", ["bar", "baz"])
         logger.report_metric("Execution time", "14 Mahayugas")
         logger.report_event("Frobbing the galactopus", "very messy this time")
         try:

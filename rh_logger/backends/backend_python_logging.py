@@ -12,7 +12,7 @@ import sys
 
 class BLPLogger(rh_logger.api.Logger):
 
-    def __init__(self, name, args):
+    def __init__(self, name):
         config = rh_logger.get_logging_config()
         if "version" != config or config["version"] != 1:
             # If no config supplied, use basic config
@@ -21,15 +21,17 @@ class BLPLogger(rh_logger.api.Logger):
         else:
             logging.config.dictConfig(config)
         self.logger = logging.getLogger(name)
-        self.args = args
 
-    def start_process(self, msg):
+    def start_process(self, name, msg, args=None):
         '''Report the start of a process
 
         :param msg: an introductory message for the process
         '''
-        self.logger.info("Starting process: %s (%s)" %
-                         (msg, repr(self.args)))
+        if args is not None:
+            self.logger.info("Starting process: %s (%s)" %
+                             (msg, repr(args)))
+        else:
+            self.logger.info("Starting process: %s")
 
     def end_process(self, msg, exit_code):
         '''Report the end of a process
@@ -110,6 +112,6 @@ class BLPLogger(rh_logger.api.Logger):
             self.logger.error(msg)
 
 
-def get_logger(name, args):
+def get_logger(name):
     '''Get the default rh_logging logger'''
-    return BLPLogger(name, args)
+    return BLPLogger(name)
