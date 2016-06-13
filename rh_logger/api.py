@@ -24,11 +24,6 @@ def get_logging_backend():
     return __logging_backend
 
 
-def get_logging_config():
-    '''Get the section of the rh_config for the loaded logger'''
-    return logging_config
-
-
 class ExitCode(enum.Enum):
     '''Process completed successfully'''
     success = 0
@@ -130,7 +125,7 @@ class LoggerProxy(Logger):
                 'rh_logger.backend', backend):
             fn = entry_point.load()
             logging_config = logging_config_root.get(backend, {})
-            self.logger = fn(name)
+            self.logger = fn(name, logging_config)
             if self.logger is not None:
                 return
         raise ValueError("Unable to find an appropriate logging backend. "

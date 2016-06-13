@@ -21,9 +21,8 @@ import time
 class CarbonLogger(backend_python_logging.BLPLogger):
     '''Log metrics to Carbon/Graphite'''
 
-    def __init__(self, name):
+    def __init__(self, name, config):
         super(CarbonLogger, self).__init__(name)
-        config = rh_logger.get_logging_config()
         if "host" not in config:
             host = "127.0.0.1"
         else:
@@ -80,5 +79,5 @@ class CarbonLogger(backend_python_logging.BLPLogger):
         self.queue.put(None)
 
 
-def get_logger(name, args):
-    return CarbonLogger(name, args)
+def get_logger(name, config):
+    return CarbonLogger(name, config)

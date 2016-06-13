@@ -12,9 +12,8 @@ import sys
 
 class BLPLogger(rh_logger.api.Logger):
 
-    def __init__(self, name):
-        config = rh_logger.get_logging_config()
-        if "version" != config or config["version"] != 1:
+    def __init__(self, name, config):
+        if "version" not in config or config["version"] != 1:
             # If no config supplied, use basic config
             logging.basicConfig()
             logging.root.setLevel(logging.INFO)
@@ -112,6 +111,6 @@ class BLPLogger(rh_logger.api.Logger):
             self.logger.error(msg)
 
 
-def get_logger(name):
+def get_logger(name, config):
     '''Get the default rh_logging logger'''
-    return BLPLogger(name)
+    return BLPLogger(name, config)

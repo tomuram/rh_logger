@@ -13,9 +13,8 @@ import traceback
 class DatadogLogger(rh_logger.api.Logger):
     '''Logger for datadog'''
 
-    def __init__(self, name):
+    def __init__(self, name, config):
         self.name = name
-        config = rh_logger.get_logging_config()
         if "api-key" not in config:
             raise IndexError(
                 "The api-key is missing from the datadog configuration "
@@ -161,7 +160,5 @@ class DatadogLogger(rh_logger.api.Logger):
                                 tags=tags)
 
 
-def get_logger(name, context=None):
-    if context is None:
-        context = []
-    return DatadogLogger(name, context)
+def get_logger(name, config):
+    return DatadogLogger(name, config)

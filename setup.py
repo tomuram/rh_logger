@@ -15,5 +15,5 @@ setuptools.setup(
     name="rh_logger",
     packages=["rh_logger", "rh_logger.backends"],
     url="https://github.com/Rhoana/rh_logger",
-    version="2.0.0"
+    version="2.0.1"
 )
