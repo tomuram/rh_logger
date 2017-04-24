@@ -138,6 +138,14 @@ class LoggerProxy(Logger):
         '''
         self.__initialize(name)
         self.logger.start_process(name, msg, args)
+        #
+        # Adding some automatic capture of running state here
+        #
+        self.logger.report_event("PID: %d" % os.getpid())
+        self.logger.report_event("--------- Environment ---------")
+        for k, v in os.environ.items():
+            self.logger.report_event("    %s: %s" % (k, v))
+        self.logger.report_event("-------------------------------")
 
     def end_process(self, msg, exit_code):
         '''Report the end of a process
