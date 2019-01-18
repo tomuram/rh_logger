@@ -121,6 +121,7 @@ class LoggerProxy(Logger):
         '''
         assert not hasattr(self, "logger"), "Can't call start_process twice"
         backend = get_logging_backend()
+        print('backend', backend)
         for entry_point in pkg_resources.WorkingSet().iter_entry_points(
                 'rh_logger.backend', backend):
             fn = entry_point.load()
