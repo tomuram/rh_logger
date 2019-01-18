@@ -132,13 +132,22 @@ class LoggerProxy(Logger):
         raise ValueError("Unable to find an appropriate logging backend. "
                          "Check your .rh_config.yaml file.")
 
-    def start_process(self, name, msg, args=None):
+    def start_process(self, name, msg, args=None, log_env=False):
         '''Report the start of a process
 
         :param msg: an introductory message for the process
         '''
         self.__initialize(name)
         self.logger.start_process(name, msg, args)
+        if log_env:
+            #
+            # Adding some automatic capture of running state here
+            #
+            self.logger.report_event("PID: %d" % os.getpid())
+            self.logger.report_event("--------- Environment ---------")
+            for k, v in os.environ.items():
+                self.logger.report_event("    %s: %s" % (k, v))
+            self.logger.report_event("-------------------------------")
 
     def end_process(self, msg, exit_code):
         '''Report the end of a process
