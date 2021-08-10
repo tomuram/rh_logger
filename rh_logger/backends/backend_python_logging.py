@@ -24,7 +24,9 @@ class BLPLogger(rh_logger.api.Logger):
             logging.root.setLevel(logging.INFO)
         else:
             logging.config.dictConfig(config)
-        self.logger = logging.getLogger(name)
+        self.logger = None
+        if rank==0:
+            self.logger = logging.getLogger(name)
 
     def start_process(self, name, msg, args=None):
         '''Report the start of a process
@@ -32,10 +34,10 @@ class BLPLogger(rh_logger.api.Logger):
         :param msg: an introductory message for the process
         '''
         if args is not None:
-            self.logger.info("Starting process: %s (%s)" %
+            if self.logger: self.logger.info("Starting process: %s (%s)" %
                              (msg, repr(args)))
         else:
-            self.logger.info("Starting process: %s")
+            if self.logger: self.logger.info("Starting process: %s")
 
     def end_process(self, msg, exit_code):
         '''Report the end of a process
@@ -43,7 +45,7 @@ class BLPLogger(rh_logger.api.Logger):
         :param msg: an informative message about why the process ended
         :param exit_code: one of the :py:class: `ExitCode` enumerations
         '''
-        self.logger.info("Ending process: %s, exit code = %s" %
+        if self.logger: self.logger.info("Ending process: %s, exit code = %s" %
                          (msg, exit_code.name))
 
     def report_metric(self, name, metric, subcontext=None):
@@ -55,10 +57,10 @@ class BLPLogger(rh_logger.api.Logger):
         subcontext for the metric such as a tile of the MFOV being processed.
         '''
         if subcontext is None:
-            self.logger.info("Metric %s=%s" %
+            if self.logger: self.logger.info("Metric %s=%s" %
                              (name, str(metric)))
         else:
-            self.logger.info("Metric %s=%s (%s)" %
+            if self.logger: self.logger.info("Metric %s=%s (%s)" %
                              (name, str(metric), subcontext))
 
     def report_metrics(self, name, time_series, context=None):
@@ -70,9 +72,9 @@ class BLPLogger(rh_logger.api.Logger):
         msg = "Metric %s: Running time = %0.4f, avg = %f, total = %f" % (
             name, delta, avg, total)
         if context is None:
-            self.logger.info(msg)
+            if self.logger: self.logger.info(msg)
         else:
-            self.logger.info(msg + " (%s)" % str(context))
+            if self.logger: self.logger.info(msg + " (%s)" % str(context))
 
     def report_event(self, event, context=None, log_level=None):
         '''Report an event
@@ -80,6 +82,8 @@ class BLPLogger(rh_logger.api.Logger):
         :param event: the name of the event, for instance, "Frobbing complete"
         :param context: a subcontext such as "MFOV: 5, Tile: 3"
         '''
+        if self.logger is None:
+            return
         log_from_all_ranks = False
         if log_level is None:
             log_fn = self.logger.info
@@ -114,11 +118,11 @@ class BLPLogger(rh_logger.api.Logger):
         if exception is None:
             if msg is None:
                 msg = str(sys.exc_value)
-            self.logger.exception(msg, exc_info=1)
+            if self.logger: self.logger.exception(msg, exc_info=1)
         else:
             if msg is None:
                 msg = str(exception)
-            self.logger.error(msg)
+            if self.logger: self.logger.error(msg)
 
 
 def get_logger(name, config):
