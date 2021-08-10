@@ -9,6 +9,11 @@ import rh_logger
 import rh_logger.api
 import sys
 
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+numranks = comm.Get_size()
+
 
 class BLPLogger(rh_logger.api.Logger):
 
@@ -75,6 +80,7 @@ class BLPLogger(rh_logger.api.Logger):
         :param event: the name of the event, for instance, "Frobbing complete"
         :param context: a subcontext such as "MFOV: 5, Tile: 3"
         '''
+        log_from_all_ranks = False
         if log_level is None:
             log_fn = self.logger.info
         elif log_level <= logging.DEBUG:
@@ -85,14 +91,18 @@ class BLPLogger(rh_logger.api.Logger):
             log_fn = self.logger.warning
         elif log_level <= logging.ERROR:
             log_fn = self.logger.error
+            log_from_all_ranks = True
         elif log_level <= logging.CRITICAL:
             log_fn = self.logger.critical
+            log_from_all_ranks = True
         else:
             log_fn = self.logger.critical
-        if context is None:
-            log_fn(event)
-        else:
-            log_fn("%s (%s)" % (event, repr(context)))
+            log_from_all_ranks = True
+        if log_from_all_ranks or rank==0:
+          if context is None:
+              log_fn(event)
+          else:
+              log_fn("%s (%s)" % (event, repr(context)))
 
     def report_exception(self, exception=None, msg=None):
         '''Report an exception
